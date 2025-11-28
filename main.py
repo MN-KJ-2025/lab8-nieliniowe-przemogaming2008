@@ -86,25 +86,38 @@ def bisection(
     epsilon: float,
     max_iter: int,
 ) -> tuple[float, int] | None:
-    """Funkcja aproksymująca rozwiązanie równania f(x) = 0 na przedziale [a,b] 
-    metodą bisekcji.
+    if not isinstance(a, (int, float)) or not isinstance(b, (int, float)):
+        return None
+    if not isinstance(epsilon, float):
+        return None
+    if not isinstance(max_iter, int):
+        return None
+    if not callable(f):
+        return None
+    if a >= b:
+        return None
+    if epsilon < 0:
+        return None
+    if max_iter <= 0:
+        return None
 
-    Args:
-        a (int | float): Początek przedziału.
-        b (int | float): Koniec przedziału.
-        f (Callable[[float], float]): Funkcja, dla której poszukiwane jest 
-            rozwiązanie.
-        epsilon (float): Tolerancja zera maszynowego (warunek stopu).
-        max_iter (int): Maksymalna liczba iteracji.
+    if f(a) * f(b) >= 0:
+        return None
 
-    Returns:
-        (tuple[float, int]):
-            - Aproksymowane rozwiązanie,
-            - Liczba wykonanych iteracji.
-        Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
-    """
-    pass
+    counter = 0
+    x0 = (a + b) / 2
 
+    while abs(f(x0)) > epsilon and counter < max_iter:
+        counter += 1
+
+        if f(a) * f(x0) < 0:
+            b = x0
+        else:
+            a = x0
+
+        x0 = (a + b) / 2
+
+    return x0, counter + 1
 
 def secant(
     a: int | float,
@@ -113,44 +126,50 @@ def secant(
     epsilon: float,
     max_iters: int,
 ) -> tuple[float, int] | None:
-    """funkcja aproksymująca rozwiązanie równania f(x) = 0 na przedziale [a,b] 
-    metodą siecznych.
+    if not isinstance(a, (float, int)) or not isinstance(b, (float, int)):
+        return None
+    if not callable(f):
+        return None
+    if a >= b:
+        return None
+    if epsilon < 0:
+        return None
+    if max_iters <= 0:
+        return None
 
-    Args:
-        a (int | float): Początek przedziału.
-        b (int | float): Koniec przedziału.
-        f (Callable[[float], float]): Funkcja, dla której poszukiwane jest 
-            rozwiązanie.
-        epsilon (float): Tolerancja zera maszynowego (warunek stopu).
-        max_iters (int): Maksymalna liczba iteracji.
+    fa = f(a)
+    fb = f(b)
+    if fa * fb >= 0:
+        return None
 
-    Returns:
-        (tuple[float, int]):
-            - Aproksymowane rozwiązanie,
-            - Liczba wykonanych iteracji.
-        Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
-    """
-    pass
+    x = (a * fb - b * fa) / (fb - fa)
+    fx = f(x)
+    counter = 1
 
+    while abs(fx) > epsilon and counter < max_iters:
+        if fa * fx < 0:
+            b = x
+            fb = fx
+        else:
+            a = x
+            fa = fx
+
+        x = (a * fb - b * fa) / (fb - fa)
+        fx = f(x)
+        counter += 1
+
+    return x, counter
 
 def difference_quotient(
     f: Callable[[float], float], x: int | float, h: int | float
 ) -> float | None:
-    """Funkcja obliczająca wartość iloazu różnicowego w punkcie x dla zadanej 
-    funkcji f(x).
-
-    Args:
-        f (Callable[[float], float]): Funkcja, dla której poszukiwane jest 
-            rozwiązanie.
-        x (int | float): Argument funkcji.
-        h (int | float): Krok różnicy wykorzystywanej do wyliczenia ilorazu 
-            różnicowego.
-
-    Returns:
-        (float): Wartość ilorazu różnicowego.
-        Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
-    """
-    pass
+    if not isinstance(x, (float, int)) or not isinstance(h, (float, int)):
+        return None
+    if not callable(f):
+        return None
+    if h == 0:
+        return None
+    return (f(x + h) - f(x)) / h
 
 
 def newton(
@@ -182,4 +201,43 @@ def newton(
             - Liczba wykonanych iteracji.
         Jeżeli dane wejściowe są niepoprawne funkcja zwraca `None`.
     """
-    pass
+    if not callable(f) : return None
+    if not isinstance(a, (float, int)) or not isinstance(b, (float, int)): return None
+    if f(a) * f(b) >= 0 : return None
+    if a >= b : return None
+    if not isinstance(epsilon ,float) : return None
+    if not isinstance(max_iter ,int) : return None
+    if epsilon < 0 : return None
+    if max_iter <= 0 : return None
+
+    fa = f(a)
+    fb = f(b)
+    dda = ddf(a)
+    ddb = ddf(b)
+
+    if fa * dda > 0:
+        x = float(a)
+    elif fb * ddb > 0:
+        x = float(b)
+    else:
+        x = (a + b) / 2
+
+    for it in range(1, max_iter + 1):
+        fx = f(x)
+        dfx = df(x)
+
+        if dfx == 0:
+            return None
+
+        x_next = x - fx / dfx
+
+        if abs(f(x_next)) <= epsilon:
+            return (x_next, it)
+
+        x = x_next
+
+    return (x, max_iter)
+h = 1e-6
+df = lambda x : difference_quotient(main.func,x,h)
+ddf = lambda x : difference_quotient(df,x,h)
+
